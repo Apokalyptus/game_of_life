@@ -4,21 +4,20 @@ use sdl2::pixels::Color;
 use sdl2::rect::Point;
 use std::{thread, time};
 
-const WIDTH: usize = 128;
-const HEIGHT: usize = 128;
+const WIDTH: usize = 1024;
+const HEIGHT: usize = 768;
 
-/*
 fn init_playfield(v_playfield: &mut [u8]) {
     for (_i, elem) in v_playfield.iter_mut().enumerate() {
-        if (rand::random::<u8>() % 2) == 0 {
-            *elem = 0;
-        } else {
+        if rand::random::<f32>() < 0.3 {  // 30% Wahrscheinlichkeit für lebende Zellen
             *elem = 1;
+        } else {
+            *elem = 0;
         }
     }
 }
-*/
 
+/*
 /* GLIDER */
 fn init_playfield(v_playfield: &mut [u8]) {
     //clear
@@ -33,7 +32,7 @@ fn init_playfield(v_playfield: &mut [u8]) {
     v_playfield[middle+2*WIDTH-1] = 1;
     v_playfield[middle+2*WIDTH+1] = 1;
 }
-
+*/
 
 /*
 fn init_playfield(v_playfield: &mut [u8]) {
@@ -173,7 +172,7 @@ fn no_of_surrounders(position: usize, v_playfield: &mut [u8]) -> usize {
     }
 
     // right row
-    if position % (WIDTH - 1) == 0 {
+    if position % WIDTH == WIDTH - 1 {
         if v_playfield[position - WIDTH] == 1 {
             count += 1
         };
@@ -227,17 +226,11 @@ fn play_one_round(v_playfield: &mut [u8]) {
    
     for (_i, elem) in v_playfield.iter_mut().enumerate() {
         number_surrounder = no_of_surrounders(_i, &mut cloned_payfiled);
-        if number_surrounder < 2 {
-           *elem = 0;
-        } else if number_surrounder == 2 || number_surrounder == 3 {
-            if *elem == 1 {
-                *elem = 1;
-            }
-            if number_surrounder == 3 && *elem == 0 {
-                *elem = 1;
-            }
-        } else if number_surrounder > 3 {
-            *elem = 0;
+        
+        match number_surrounder {
+            2 => if *elem == 0 { *elem = 0 }, // Zelle behält ihren Status
+            3 => *elem = 1, // Zelle wird lebendig oder bleibt lebendig
+            _ => *elem = 0, // Zelle stirbt (bei < 2 oder > 3 Nachbarn)
         }
     }
 }
@@ -314,7 +307,7 @@ fn main() -> Result<(), String> {
 
         canvas.present();
         play_one_round(&mut v_playfiled);
-        //println!("Tick: {}", round_counter);
+        thread::sleep(time::Duration::from_millis(50));
         //::std::thread::sleep(time::Duration::from_millis(2));
      
     }
